@@ -2,7 +2,7 @@ name: Build, Push Docker and Deploy to EC2
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 env:
   DOCKERHUB_USERNAME: jocamposar #usuario DockerHub
