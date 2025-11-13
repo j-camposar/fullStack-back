@@ -7,20 +7,26 @@ const { User } = require('./models');
 const authenticateToken = require("./middleware/auth");
 
 const app = express();
-
 // ----------------------------------------------------------
 // ⚙️ Configuración general
 // ----------------------------------------------------------
+const allowedOrigins = [
+  'https://yn8csy-3000.csb.app', // frontend
+  'https://yn8csy-3001.csb.app', // backend (por si se auto redirige)
+];
 
-app.use(cors({
-  origin: [
-    'https://yn8csy-3000.csb.app', // tu frontend
-    'https://yn8csy-3001.csb.app'  // por si hay auto redirección HTTPS
-  ],
-  credentials: true,
-}));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
 
-app.use(express.json());
 app.use(express.json());
 
 // Variables de entorno
