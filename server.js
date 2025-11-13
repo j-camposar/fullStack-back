@@ -13,7 +13,7 @@ const app = express();
 // ----------------------------------------------------------
 
 app.use(cors({
-  origin: 'http://localhost:3000', // Cambiar por dominio real del frontend
+  origin: 'http://front:3000', // Cambiar por dominio real del frontend
   credentials: true,
 }));
 app.use(express.json());

@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "neondb_owner",
-    "password": "npg_8VrojQnltf1U",
-    "database": "neondb",
-    "host": "ep-broad-feather-a4id4i50-pooler.us-east-1.aws.neon.tech",
+    "username": "postgres",
+    "password": "postgres",
+    "database": "fullStack",
+    "host": "db:5432",
     "port": 5432,
     "dialect": "postgres",
     "dialectOptions": {
