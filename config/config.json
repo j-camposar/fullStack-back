@@ -3,7 +3,7 @@
     "username": "postgres",
     "password": "postgres",
     "database": "fullStack",
-    "host": "db:5432",
+    "host": "workspace-db-1:5432",
     "port": 5432,
     "dialect": "postgres",
     "dialectOptions": {
