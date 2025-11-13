@@ -21,11 +21,17 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "postgres",
-    "password": "FullStack2",
-    "database": "fullStack",
-    "host": "db.smwvychvupztfrtgatps.supabase.co",
+    "username": "neondb_owner",
+    "password": "npg_8VrojQnltf1U",
+    "database": "neondb",
+    "host": "ep-broad-feather-a4id4i50-pooler.us-east-1.aws.neon.tech",
     "port": 5432,
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "dialectOptions": {
+        "ssl": {
+            "require": true,
+            "rejectUnauthorized": false
+        }
+    }
   }
 }
