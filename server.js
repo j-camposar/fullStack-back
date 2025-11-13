@@ -12,16 +12,15 @@ const app = express();
 // ⚙️ Configuración general
 // ----------------------------------------------------------
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+app.use(cors({
+  origin: [
+    'https://yn8csy-3000.csb.app', // tu frontend
+    'https://yn8csy-3001.csb.app'  // por si hay auto redirección HTTPS
+  ],
+  credentials: true,
+}));
+
+app.use(express.json());
 app.use(express.json());
 
 // Variables de entorno
@@ -206,6 +205,7 @@ app.put("/actualizaContrasena", authenticateToken, async (req, res) => {
 // ----------------------------------------------------------
 // 🚀 Iniciar servidor
 // ----------------------------------------------------------
-app.listen(3001, () => {
-  console.log("🚀 Servidor corriendo en puerto 3001");
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
 });
