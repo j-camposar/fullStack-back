@@ -1,16 +1,20 @@
-# Etapa 1: construir dependencias
-FROM node:20-alpine AS build
-
-WORKDIR /usr/src/app
-COPY package*.json ./
-RUN npm ci --omit=dev
-COPY . .
-
-# Etapa 2: imagen liviana para ejecutar
+# Usa una imagen oficial de Node.js
 FROM node:20-alpine
 
+# Crea el directorio de trabajo dentro del contenedor
 WORKDIR /usr/src/app
-COPY --from=build /usr/src/app ./
 
+# Copia package.json y package-lock.json (si existe)
+COPY package*.json ./
+
+# Instala dependencias
+RUN npm install
+
+# Copia el resto del código de la app
+COPY . .
+
+# Expone el puerto en el que correrá la app
 EXPOSE 3000
-CMD ["node", "server.js"]
+
+# Comando por defecto para iniciar la app
+CMD ["npm", "start"]
