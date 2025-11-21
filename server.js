@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const { User } = require('./models');
 const authenticateToken = require("./middleware/auth");
 const client = require('prom-client');
-const logFile = "/var/log/app/app.log";
+const logFile = "/var/log/node/app.log";
 
 fs.mkdirSync(path.dirname(logFile), { recursive: true });
 
@@ -128,7 +128,7 @@ function decryptPassword(encrypted) {
 // ----------------------------------------------------------
 // 🧾 REGISTRO DE USUARIO — Requiere token y encripta contraseñas
 // ----------------------------------------------------------
-app.post('/register', authenticateToken, async (req, res) => {
+app.post('/register', async (req, res) => {
   try {
     writeLog("INFO", "Registro de usuarios");
 
@@ -141,10 +141,10 @@ app.post('/register', authenticateToken, async (req, res) => {
     }
 
     // 1️⃣ Desencriptar clave recibida desde el frontend
-    const passwordPlain = decryptPassword(password);
+    // const passwordPlain = decryptPassword(password);
 
     // 2️⃣ Generar hash seguro antes de guardar
-    const hash = await bcrypt.hash(passwordPlain, BCRYPT_ROUNDS);
+    const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     console.log("🔐 Clave hasheada:", hash);
 
     // 3️⃣ Crear usuario en la base de datos
@@ -176,7 +176,7 @@ app.post('/register', authenticateToken, async (req, res) => {
 // ----------------------------------------------------------
 // 📋 Obtener todos los usuarios (protegido)
 // ----------------------------------------------------------
-app.get("/users", authenticateToken, async (req, res) => {
+app.get("/users", async (req, res) => {
   try {
     writeLog("INFO", 'obtener usuarios' );
     const users = await User.findAll({
@@ -211,7 +211,7 @@ app.get("/usersSinSeguridad", async (req, res) => {
 // ----------------------------------------------------------
 // 🔑 Actualizar contraseña del usuario autenticado
 // ----------------------------------------------------------
-app.put("/actualizaContrasena", authenticateToken, async (req, res) => {
+app.put("/actualizaContrasena", async (req, res) => {
   try {
     writeLog("INFO", 'actualizar contraseña' );
     const { username, password, newPassword } = req.body;
@@ -221,8 +221,8 @@ app.put("/actualizaContrasena", authenticateToken, async (req, res) => {
     }
 
     // 🧩 Desencriptar contraseñas enviadas desde el frontend
-    const plainPassword = decryptPassword(password);
-    const plainNewPassword = decryptPassword(newPassword);
+    // const plainPassword = decryptPassword(password);
+    // const plainNewPassword = decryptPassword(newPassword);
 
     // 🔍 Buscar usuario en BD
     const user = await User.findOne({
@@ -236,14 +236,14 @@ app.put("/actualizaContrasena", authenticateToken, async (req, res) => {
     }
 
     // 🔒 Verificar contraseña actual
-    const isMatch = await bcrypt.compare(plainPassword, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
         writeLog("ERROR", username+": Contraseña actual incorrecta" );
       return res.status(401).json({ error: "Contraseña actual incorrecta" });
     }
 
     // ✅ Generar nuevo hash seguro
-    const newHash = await bcrypt.hash(plainNewPassword, BCRYPT_ROUNDS);
+    const newHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     // 💾 Actualizar registro del usuario
     await user.update({ password: newHash });
