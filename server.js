@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const { User } = require('./models');
 const authenticateToken = require("./middleware/auth");
 const client = require('prom-client');
-const logFile = "/var/log/node/app.log";
+const logFile = "./logs/app.log";
 
 fs.mkdirSync(path.dirname(logFile), { recursive: true });
 
