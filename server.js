@@ -1,11 +1,16 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const fs = require("fs");
+const path = require("path");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User } = require('./models');
 const authenticateToken = require("./middleware/auth");
 const client = require('prom-client');
+const logFile = "/var/log/app/app.log";
+
+fs.mkdirSync(path.dirname(logFile), { recursive: true });
 
 const app = express();
 const register = new client.Registry();
@@ -29,6 +34,15 @@ register.registerMetric(httpRequestsTotal);
 register.registerMetric(httpRequestDuration);
 register.setDefaultLabels({ app: 'node-metrics-demo' });
 client.collectDefaultMetrics({ register });
+
+function writeLog(level, msg) {
+  const line = `${new Date().toISOString()} [${level}] ${msg}\n`;
+  // stdout
+  if (level === "ERROR") console.error(line.trim());
+  else console.log(line.trim());
+  // archivo
+  fs.appendFileSync(logFile, line);
+}
 // ----------------------------------------------------------
 // ⚙️ Configuración general
 // ----------------------------------------------------------
@@ -67,12 +81,14 @@ const USERS = [
 // ----------------------------------------------------------
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
+  writeLog("INFO", "login de usuario");
   // Buscar usuario en la lista (simulada)
   const user = USERS.find(
     (u) => u.username === username && u.password === password
   );
 
   if (!user) {
+    writeLog("ERROR", username+ ": Intenta ingresar con Credenciales inválidas" );
     return res.status(401).json({ error: "Credenciales inválidas" });
   }
 
@@ -114,9 +130,13 @@ function decryptPassword(encrypted) {
 // ----------------------------------------------------------
 app.post('/register', authenticateToken, async (req, res) => {
   try {
+    writeLog("INFO", "Registro de usuarios");
+
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
+      writeLog("ERROR", 'Faltan campos requeridos' );
+
       return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
 
@@ -143,6 +163,8 @@ app.post('/register', authenticateToken, async (req, res) => {
       },
     });
   } catch (error) {
+    writeLog("ERROR", "❌ Error al registrar usuario:");
+
     console.error("❌ Error al registrar usuario:", error);
     res.status(400).json({
       error: 'Error al registrar usuario',
@@ -156,11 +178,14 @@ app.post('/register', authenticateToken, async (req, res) => {
 // ----------------------------------------------------------
 app.get("/users", authenticateToken, async (req, res) => {
   try {
+    writeLog("INFO", 'obtener usuarios' );
     const users = await User.findAll({
       attributes: ["id", "username", "email"],
     });
     res.json(users);
   } catch (error) {
+    writeLog("ERROR", "❌ Error al obtener usuarios:");
+
     console.error("Error al obtener usuarios:", error);
     res.status(500).json({ error: "Error al obtener usuarios" });
   }
@@ -171,11 +196,13 @@ app.get("/users", authenticateToken, async (req, res) => {
 // ----------------------------------------------------------
 app.get("/usersSinSeguridad", async (req, res) => {
   try {
+    writeLog("INFO", 'obtener usuarios sin seguridad' );
     const users = await User.findAll({
       attributes: ["id", "username", "email"],
     });
     res.json(users);
   } catch (error) {
+    writeLog("ERROR", "❌ Error al obtener usuarios sin seguridad");
     console.error("Error al obtener usuarios:", error);
     res.status(500).json({ error: "Error al obtener usuarios" });
   }
@@ -186,6 +213,7 @@ app.get("/usersSinSeguridad", async (req, res) => {
 // ----------------------------------------------------------
 app.put("/actualizaContrasena", authenticateToken, async (req, res) => {
   try {
+    writeLog("INFO", 'actualizar contraseña' );
     const { username, password, newPassword } = req.body;
 
     if (!username || !password || !newPassword) {
@@ -203,12 +231,14 @@ app.put("/actualizaContrasena", authenticateToken, async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
+        writeLog("ERROR", username+": Usuario no encontrado" );
+        return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
     // 🔒 Verificar contraseña actual
     const isMatch = await bcrypt.compare(plainPassword, user.password);
     if (!isMatch) {
+        writeLog("ERROR", username+": Contraseña actual incorrecta" );
       return res.status(401).json({ error: "Contraseña actual incorrecta" });
     }
 
@@ -227,6 +257,7 @@ app.put("/actualizaContrasena", authenticateToken, async (req, res) => {
       },
     });
   } catch (error) {
+    writeLog("ERROR", "❌ Error interno al actualizar la contraseña" );
     console.error("Error al actualizar contraseña:", error);
     res.status(500).json({
       error: "❌ Error interno al actualizar la contraseña",
